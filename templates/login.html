@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Log In • Histogram{% endblock %}
+
+{% block content %}
+<div style="width:100%;max-width:400px;margin:30px auto;display:flex;flex-direction:column;gap:18px;">
+  
+  <div style="background-color:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:36px 28px;box-shadow:var(--shadow-md);text-align:center;">
+    
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:28px;">
+      <img src="{{ url_for('static', filename='images/logo.svg') }}" style="width:58px;height:58px;" alt="Histogram">
+      <h1 class="brand-name" style="font-size:2rem;letter-spacing:-1px;">Histogram</h1>
+      <p style="color:var(--text-dim);font-size:0.9rem;">Sign in to see photos, videos & stories from creators</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('login') }}" style="display:flex;flex-direction:column;gap:14px;text-align:left;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label" for="login_input">Username or Email</label>
+        <input type="text" id="login_input" name="login_input" value="{{ login_input or '' }}" required autofocus placeholder="e.g. elena_lens or user@example.com" class="input-field">
+      </div>
+
+      <div class="form-group" style="margin-bottom:6px;">
+        <label class="form-label" for="password">Password</label>
+        <input type="password" id="password" name="password" required placeholder="Enter your password" class="input-field">
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%;margin-top:10px;padding:12px;">Log In</button>
+    </form>
+
+    <!-- Demo Credentials Box -->
+    <div style="margin-top:24px;padding:14px;background-color:var(--bg-card);border-radius:var(--radius-md);border:1px dashed var(--border-highlight);text-align:left;font-size:0.82rem;">
+      <div style="font-weight:700;color:var(--accent-cyan);margin-bottom:4px;display:flex;align-items:center;gap:6px;">
+        <span>⚡ Quick Demo Login:</span>
+      </div>
+      <div style="color:var(--text-muted);line-height:1.4;">
+        Username: <strong style="color:#fff;">elena_lens</strong> or <strong style="color:#fff;">marcus_shoots</strong><br>
+        Password: <strong style="color:#fff;">password123</strong>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="background-color:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:20px;text-align:center;font-size:0.92rem;">
+    Don't have an account? <a href="{{ url_for('register') }}" style="color:var(--accent-cyan);font-weight:700;">Sign up</a>
+  </div>
+
+</div>
+{% endblock %}

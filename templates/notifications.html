@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications • Histogram{% endblock %}
+
+{% block content %}
+<div style="width:100%;max-width:620px;margin:0 auto;">
+  
+  <div style="background-color:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-md);">
+    
+    <div style="padding:18px 24px;border-bottom:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between;">
+      <h2 style="font-size:1.25rem;font-weight:700;">Notifications</h2>
+      <span style="font-size:0.82rem;color:var(--text-dim);">Recent Activity</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;">
+      {% if notifications %}
+        {% for n in notifications %}
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.03);{% if not n.is_read %}background:rgba(99,102,241,0.06);{% endif %}">
+          
+          <div style="display:flex;align-items:center;gap:14px;">
+            <a href="{{ url_for('profile', username=n.actor_username) }}">
+              <img src="{{ url_for('serve_upload', folder='profiles', filename=n.actor_avatar) }}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;" alt="">
+            </a>
+
+            <div style="font-size:0.92rem;line-height:1.4;">
+              <a href="{{ url_for('profile', username=n.actor_username) }}" style="font-weight:700;">{{ n.actor_username }}</a>
+              
+              {% if n.notification_type == 'like' %}
+                <span style="color:var(--text-muted);">liked your post.</span>
+              {% elif n.notification_type == 'comment' %}
+                <span style="color:var(--text-muted);">commented on your post.</span>
+              {% elif n.notification_type == 'follow' %}
+                <span style="color:var(--text-muted);">started following you.</span>
+              {% elif n.notification_type == 'message' %}
+                <span style="color:var(--text-muted);">sent you a message.</span>
+              {% endif %}
+
+              <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px;">
+                {{ n.created_at|timeago }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Action / Thumbnail Preview -->
+          <div>
+            {% if n.post_id and n.post_media %}
+              <a href="{{ url_for('view_post', post_id=n.post_id) }}" style="width:44px;height:44px;display:block;border-radius:6px;overflow:hidden;background:#000;">
+                <img src="{{ url_for('serve_upload', folder='posts', filename=n.post_media) }}" style="width:100%;height:100%;object-fit:cover;" alt="">
+              </a>
+            {% elif n.notification_type == 'follow' %}
+              <a href="{{ url_for('profile', username=n.actor_username) }}" class="btn-follow" style="font-size:0.78rem;padding:5px 12px;">
+                View Profile
+              </a>
+            {% elif n.notification_type == 'message' %}
+              <a href="{{ url_for('messages_page', username=n.actor_username) }}" class="btn btn-secondary" style="font-size:0.78rem;padding:5px 12px;">
+                Chat
+              </a>
+            {% endif %}
+          </div>
+
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="padding:60px 20px;text-align:center;color:var(--text-dim);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:12px;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <h3 style="font-size:1.1rem;margin-bottom:6px;">No Notifications Yet</h3>
+          <p style="font-size:0.9rem;">When you get likes, comments, followers or messages, they will appear here.</p>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

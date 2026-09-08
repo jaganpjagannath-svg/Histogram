@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Post by {{ post.username }} • Histogram{% endblock %}
+
+{% block content %}
+<div style="width:100%;display:flex;justify-content:center;padding:10px 0;">
+  
+  <div class="post-detail-card">
+    
+    <!-- Left Media Column -->
+    <div class="detail-media-side">
+      {% if post.media_type == 'video' %}
+        <video src="{{ url_for('serve_upload', folder='posts', filename=post.media_path) }}" controls playsinline></video>
+      {% else %}
+        <img src="{{ url_for('serve_upload', folder='posts', filename=post.media_path) }}" alt="Post by {{ post.username }}">
+      {% endif %}
+    </div>
+
+    <!-- Right Content & Comments Column -->
+    <div class="detail-comments-side">
+      
+      <!-- Header -->
+      <div class="post-header" style="border-bottom:1px solid var(--border-subtle);">
+        <div class="post-author">
+          <a href="{{ url_for('profile', username=post.username) }}">
+            <img src="{{ url_for('serve_upload', folder='profiles', filename=post.profile_picture) }}" class="post-author-avatar" alt="">
+          </a>
+          <div class="post-author-meta">
+            <a href="{{ url_for('profile', username=post.username) }}" class="post-author-name">{{ post.username }}</a>
+            <span class="post-time">{{ post.created_at|timeago }}</span>
+          </div>
+        </div>
+
+        {% if current_user and post.user_id == current_user.id %}
+        <button class="post-more-btn" onclick="deletePost({{ post.id }})" title="Delete Post">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+        {% endif %}
+      </div>
+
+      <!-- Comments Scroll Area -->
+      <div class="detail-comments-scroll" id="detail-comments-list">
+        
+        <!-- Post Caption as First Comment -->
+        {% if post.caption %}
+        <div class="comment-row">
+          <img src="{{ url_for('serve_upload', folder='profiles', filename=post.profile_picture) }}" class="comment-avatar" alt="">
+          <div class="comment-bubble">
+            <div style="font-size:0.92rem;">
+              <a href="{{ url_for('profile', username=post.username) }}" style="font-weight:700;margin-right:6px;">{{ post.username }}</a>
+              <span>{{ post.caption }}</span>
+            </div>
+            <span style="font-size:0.75rem;color:var(--text-dim);">{{ post.created_at|timeago }}</span>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Comments Thread -->
+        {% for c in comments %}
+        <div class="comment-row" id="comment-{{ c.id }}">
+          <img src="{{ url_for('serve_upload', folder='profiles', filename=c.profile_picture) }}" class="comment-avatar" alt="">
+          <div class="comment-bubble">
+            <div style="font-size:0.92rem;">
+              <a href="{{ url_for('profile', username=c.username) }}" style="font-weight:700;margin-right:6px;">{{ c.username }}</a>
+              <span>{{ c.comment_text }}</span>
+            </div>
+            <div class="comment-meta">
+              <span>{{ c.created_at|timeago }}</span>
+              {% if current_user and (c.user_id == current_user.id or post.user_id == current_user.id) %}
+              <button class="comment-delete-btn" onclick="deleteComment({{ c.id }}, {{ post.id }})">Delete</button>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+
+      </div>
+
+      <!-- Actions & Likes -->
+      <div style="border-top:1px solid var(--border-subtle);padding:12px 18px;">
+        
+        <div class="post-actions" style="padding:0 0 8px 0;">
+          <div class="actions-left">
+            {% if current_user %}
+            <button class="action-btn action-btn-like {% if post.is_liked %}liked{% endif %}" data-post-id="{{ post.id }}" onclick="toggleLike({{ post.id }}, this)" title="Like">
+              <svg viewBox="0 0 24 24" fill="{% if post.is_liked %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+            </button>
+            {% endif %}
+
+            <button class="action-btn" onclick="copyToClipboard('{{ request.url }}')" title="Share">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+
+          {% if current_user %}
+          <button class="action-btn {% if post.is_saved %}saved{% endif %}" onclick="toggleSave({{ post.id }}, this)" title="Save">
+            <svg viewBox="0 0 24 24" fill="{% if post.is_saved %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </button>
+          {% endif %}
+        </div>
+
+        <div class="likes-count-text" id="likes-count-{{ post.id }}">
+          {{ post.likes_count }} like{{ '' if post.likes_count == 1 else 's' }}
+        </div>
+        <div style="font-size:0.75rem;color:var(--text-dim);">{{ post.created_at }}</div>
+
+      </div>
+
+      <!-- Add Comment Form -->
+      {% if current_user %}
+      <form class="post-comment-form" onsubmit="handleCommentSubmit(event, {{ post.id }})">
+        <input type="text" class="comment-input" placeholder="Add a comment..." required>
+        <button type="submit" class="comment-post-btn">Post</button>
+      </form>
+      {% else %}
+      <div style="padding:14px 18px;text-align:center;border-top:1px solid var(--border-subtle);font-size:0.9rem;">
+        <a href="{{ url_for('login') }}" style="color:var(--accent-cyan);font-weight:700;">Log in</a> to like or comment.
+      </div>
+      {% endif %}
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

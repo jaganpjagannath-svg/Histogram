@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up • Histogram{% endblock %}
+
+{% block content %}
+<div style="width:100%;max-width:400px;margin:30px auto;display:flex;flex-direction:column;gap:18px;">
+  
+  <div style="background-color:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:36px 28px;box-shadow:var(--shadow-md);text-align:center;">
+    
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:24px;">
+      <img src="{{ url_for('static', filename='images/logo.svg') }}" style="width:58px;height:58px;" alt="Histogram">
+      <h1 class="brand-name" style="font-size:2rem;letter-spacing:-1px;">Histogram</h1>
+      <p style="color:var(--text-dim);font-size:0.9rem;">Sign up to share moments, capture light, and connect</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('register') }}" style="display:flex;flex-direction:column;gap:14px;text-align:left;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label" for="username">Username</label>
+        <input type="text" id="username" name="username" value="{{ username or '' }}" required autofocus placeholder="Letters, numbers & underscores" class="input-field">
+      </div>
+
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label" for="email">Email</label>
+        <input type="email" id="email" name="email" value="{{ email or '' }}" required placeholder="you@example.com" class="input-field">
+      </div>
+
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label" for="full_name">Full Name (Optional)</label>
+        <input type="text" id="full_name" name="full_name" value="{{ full_name or '' }}" placeholder="Your name" class="input-field">
+      </div>
+
+      <div class="form-group" style="margin-bottom:6px;">
+        <label class="form-label" for="password">Password</label>
+        <input type="password" id="password" name="password" required minlength="6" placeholder="At least 6 characters" class="input-field">
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%;margin-top:10px;padding:12px;">Sign Up</button>
+    </form>
+
+  </div>
+
+  <div style="background-color:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:20px;text-align:center;font-size:0.92rem;">
+    Have an account? <a href="{{ url_for('login') }}" style="color:var(--accent-cyan);font-weight:700;">Log in</a>
+  </div>
+
+</div>
+{% endblock %}

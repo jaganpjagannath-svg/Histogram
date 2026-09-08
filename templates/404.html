@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found • Histogram{% endblock %}
+
+{% block content %}
+<div style="text-align:center;padding:80px 20px;max-width:500px;margin:0 auto;">
+  <h1 style="font-size:4rem;font-weight:900;background:var(--gradient-brand);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px;">404</h1>
+  <h2 style="font-size:1.4rem;font-weight:700;margin-bottom:8px;">Page Not Available</h2>
+  <p style="color:var(--text-dim);font-size:0.95rem;margin-bottom:24px;">The link you followed may be broken, or the post/profile may have been removed.</p>
+  <a href="{{ url_for('home') }}" class="btn btn-primary">Go to Home Feed</a>
+</div>
+{% endblock %}

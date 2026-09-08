@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Histogram • Home Feed{% endblock %}
+
+{% block content %}
+<div class="app-container">
+
+  <!-- Main Feed Column -->
+  <div class="feed-column">
+
+    <!-- Stories Bar -->
+    <section class="stories-card">
+      <div class="stories-track">
+        
+        <!-- Add Story for Current User -->
+        <button class="story-item" onclick="openCreateStoryModal()">
+          <div class="story-avatar-wrapper add-story">
+            <img src="{{ url_for('serve_upload', folder='profiles', filename=current_user.profile_picture) }}" class="story-avatar-inner" alt="">
+            <div class="add-badge">+</div>
+          </div>
+          <span class="story-username">Your story</span>
+        </button>
+
+        <!-- Other Users' Active Stories -->
+        {% for uname, data in stories_by_user.items() %}
+          <button class="story-item" onclick="openStoryViewer('{{ uname }}')">
+            <div class="story-avatar-wrapper">
+              <img src="{{ url_for('serve_upload', folder='profiles', filename=data.profile_picture) }}" class="story-avatar-inner" alt="">
+            </div>
+            <span class="story-username">{{ uname }}</span>
+          </button>
+        {% endfor %}
+
+      </div>
+    </section>
+
+    <!-- Posts Feed -->
+    {% if posts %}
+      {% for post in posts %}
+      <article class="post-card" id="post-card-{{ post.id }}">
+        
+        <!-- Post Header -->
+        <div class="post-header">
+          <div class="post-author">
+            <a href="{{ url_for('profile', username=post.username) }}">
+              <img src="{{ url_for('serve_upload', folder='profiles', filename=post.profile_picture) }}" class="post-author-avatar" alt="">
+            </a>
+            <div class="post-author-meta">
+              <a href="{{ url_for('profile', username=post.username) }}" class="post-author-name">
+                {{ post.username }}
+              </a>
+              <span class="post-time">{{ post.created_at|timeago }}</span>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:6px;">
+            {% if post.user_id == current_user.id %}
+            <button class="post-more-btn" onclick="deletePost({{ post.id }})" title="Delete Post">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Post Media -->
+        <div class="post-media-box" data-post-id="{{ post.id }}">
+          {% if post.media_type == 'video' %}
+            <video src="{{ url_for('serve_upload', folder='posts', filename=post.media_path) }}" controls playsinline></video>
+          {% else %}
+            <img src="{{ url_for('serve_upload', folder='posts', filename=post.media_path) }}" alt="Post by {{ post.username }}" loading="lazy">
+          {% endif %}
+          
+          <!-- Animated Double-Tap Heart -->
+          <svg class="heart-burst" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="post-actions">
+          <div class="actions-left">
+            <!-- Like Button -->
+            <button class="action-btn action-btn-like {% if post.is_liked %}liked{% endif %}" data-post-id="{{ post.id }}" onclick="toggleLike({{ post.id }}, this)" title="Like">
+              <svg viewBox="0 0 24 24" fill="{% if post.is_liked %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+            </button>
+
+            <!-- Comment Button -->
+            <a href="{{ url_for('view_post', post_id=post.id) }}" class="action-btn" title="Comment">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </a>
+
+            <!-- Share Button -->
+            <button class="action-btn" onclick="copyToClipboard('{{ request.host_url }}post/{{ post.id }}')" title="Share">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Save / Bookmark Button -->
+          <button class="action-btn {% if post.is_saved %}saved{% endif %}" onclick="toggleSave({{ post.id }}, this)" title="Save">
+            <svg viewBox="0 0 24 24" fill="{% if post.is_saved %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Post Content & Comments -->
+        <div class="post-content">
+          <!-- Likes Count -->
+          <div class="likes-count-text" id="likes-count-{{ post.id }}">
+            {{ post.likes_count }} like{{ '' if post.likes_count == 1 else 's' }}
+          </div>
+
+          <!-- Caption -->
+          {% if post.caption %}
+          <div class="post-caption">
+            <a href="{{ url_for('profile', username=post.username) }}" class="caption-user">{{ post.username }}</a>
+            <span>{{ post.caption }}</span>
+          </div>
+          {% endif %}
+
+          <!-- View all comments link -->
+          {% if post.comments_count > 2 %}
+          <a href="{{ url_for('view_post', post_id=post.id) }}" class="view-all-comments">
+            View all {{ post.comments_count }} comments
+          </a>
+          {% endif %}
+
+          <!-- Preview Comments -->
+          <div class="preview-comments-list" id="preview-comments-{{ post.id }}">
+            {% for c in post.preview_comments %}
+            <div class="preview-comment-item" id="comment-{{ c.id }}">
+              <div>
+                <a href="{{ url_for('profile', username=c.username) }}" class="comment-author-name">{{ c.username }}</a>
+                <span>{{ c.comment_text }}</span>
+              </div>
+              {% if c.user_id == current_user.id or post.user_id == current_user.id %}
+              <button class="comment-delete-btn" onclick="deleteComment({{ c.id }}, {{ post.id }})">×</button>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Post Comment Form -->
+        <form class="post-comment-form" onsubmit="handleCommentSubmit(event, {{ post.id }})">
+          <input type="text" class="comment-input" placeholder="Add a comment..." required>
+          <button type="submit" class="comment-post-btn">Post</button>
+        </form>
+
+      </article>
+      {% endfor %}
+    {% else %}
+      <div style="background-color:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:48px 24px;text-align:center;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="1.5" style="margin-bottom:12px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <h3 style="font-size:1.1rem;margin-bottom:6px;">No Posts Yet</h3>
+        <p style="color:var(--text-dim);font-size:0.9rem;margin-bottom:18px;">Follow creators or create your very first post!</p>
+        <a href="{{ url_for('create_post') }}" class="btn btn-primary">Create Post</a>
+      </div>
+    {% endif %}
+
+  </div>
+
+  <!-- Desktop Suggestions Right Panel -->
+  <aside class="desktop-suggestions">
+    
+    <!-- Self user card -->
+    <div class="user-card-self">
+      <a href="{{ url_for('profile', username=current_user.username) }}" style="display:flex;align-items:center;gap:12px;">
+        <img src="{{ url_for('serve_upload', folder='profiles', filename=current_user.profile_picture) }}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;" alt="">
+        <div>
+          <div style="font-weight:700;font-size:0.95rem;">{{ current_user.username }}</div>
+          <div style="color:var(--text-dim);font-size:0.82rem;">{{ current_user.full_name or 'Histogram Creator' }}</div>
+        </div>
+      </a>
+      <a href="{{ url_for('logout') }}" style="font-size:0.8rem;color:var(--accent-cyan);font-weight:600;">Switch</a>
+    </div>
+
+    <!-- Suggested creators to follow -->
+    {% if suggested_users %}
+    <div class="suggestions-box">
+      <div class="suggestions-header">
+        <span class="suggestions-title">Suggested For You</span>
+        <a href="{{ url_for('explore') }}" style="font-size:0.8rem;color:var(--text-muted);font-weight:600;">See All</a>
+      </div>
+
+      <div class="suggestions-list">
+        {% for su in suggested_users %}
+        <div class="suggestion-item">
+          <div class="suggestion-user">
+            <a href="{{ url_for('profile', username=su.username) }}">
+              <img src="{{ url_for('serve_upload', folder='profiles', filename=su.profile_picture) }}" class="suggestion-avatar" alt="">
+            </a>
+            <div class="suggestion-meta">
+              <a href="{{ url_for('profile', username=su.username) }}" class="suggestion-name">{{ su.username }}</a>
+              <span class="suggestion-sub">{{ su.full_name or 'Popular Creator' }}</span>
+            </div>
+          </div>
+          <button class="btn-follow" onclick="toggleFollow({{ su.id }}, this)">Follow</button>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Footer note -->
+    <div style="font-size:0.75rem;color:var(--text-dim);line-height:1.6;padding:0 8px;">
+      About • Help • API • Privacy • Terms • Locations<br>
+      © {{ now_year }} HISTOGRAM FROM DEEPMIND CODING
+    </div>
+
+  </aside>
+
+</div>
+{% endblock %}
